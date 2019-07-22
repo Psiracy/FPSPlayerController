@@ -181,12 +181,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88cb68ad42e6609489d7edbd908a61dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  normalCollider: {fileID: 8759854}
+  crouchCollider: {fileID: 8759858}
+  cam: {fileID: 963194228}
   walkSpeed: 3
   runSpeed: 8
   jumpPower: 8
-  normalCollider: {fileID: 8759854}
-  crounchCollider: {fileID: 8759858}
-  cam: {fileID: 963194228}
 --- !u!54 &8759857
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -4,23 +4,27 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField]
-    float walkSpeed, runSpeed, jumpPower;
+    const float crounchSpeedDivider = .6f;
 
     [SerializeField]
-    Collider normalCollider, crounchCollider;
+    Collider normalCollider, crouchCollider;
 
     [SerializeField]
     Transform cam;
 
-    Vector3 camInitPos;
-    float movementSpeed;
-    Rigidbody rigidbody;
+    [SerializeField]
+    float walkSpeed, runSpeed, jumpPower;
 
-    private void Start()
+    Vector3 camInitPos;
+    Rigidbody rigidBody;
+    float movementSpeed;
+    bool isGrounded, canCrouch;
+    void Start()
     {
-        rigidbody = GetComponent<Rigidbody>();
+        rigidBody = GetComponent<Rigidbody>();
         camInitPos = cam.transform.localPosition;
+        isGrounded = true;
+        canCrouch = true;
     }
 
     void Update()
@@ -30,6 +34,7 @@ public class PlayerMovement : MonoBehaviour
         float horizontal = Input.GetAxis("Horizontal");
         Vector3 movement = new Vector3(horizontal, 0, vertical);
 
+        #region walking/running
         //velocity
         Vector3 velocity = cam.transform.TransformDirection(movement);
         velocity.y = 0;
@@ -44,31 +49,47 @@ public class PlayerMovement : MonoBehaviour
             movementSpeed = walkSpeed;
         }
 
-        //jump
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            rigidbody.AddForce(transform.up * jumpPower
-, ForceMode.Impulse);
-        }
-
-
         //crouch
-        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+        if (canCrouch == true && Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
         {
             normalCollider.enabled = false;
-            crounchCollider.enabled = true;
-            cam.transform.localPosition = new Vector3(camInitPos.x, -camInitPos.y / 4, camInitPos.z);//deviding the y axis by four and taking the minus of that gives the best results
-            movementSpeed /= 2;
+            crouchCollider.enabled = true;
+            cam.transform.localPosition = new Vector3(camInitPos.x, -camInitPos.y / 4, camInitPos.z);//deviding the y axis by four and taking the minus of that, gives the best results
+            movementSpeed *= crounchSpeedDivider;
         }
         else
         {
             normalCollider.enabled = true;
-            crounchCollider.enabled = false;
+            crouchCollider.enabled = false;
             cam.transform.localPosition = camInitPos;
         }
 
         //movement
-        rigidbody.position += velocity * (movementSpeed * Time.deltaTime);
+        rigidBody.position += velocity * (movementSpeed * Time.deltaTime);
+        #endregion
 
+        #region jump
+        //check for ground
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, -transform.up, out hit, transform.localScale.y))
+        {
+            if (hit.transform != transform)
+            {
+                isGrounded = true;
+                canCrouch = true;
+            }
+        }
+        else
+        {
+            isGrounded = false;
+        }
+
+        //jump
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded == true)
+        {
+            rigidBody.AddForce(transform.up * jumpPower, ForceMode.Impulse);
+            canCrouch = false;
+        }
+        #endregion
     }
 }
